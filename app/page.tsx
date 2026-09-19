@@ -1,24 +1,8 @@
-import Image from "next/image";
-import {
-  ArrowUpRight,
-  Github,
-  Globe2,
-  Linkedin,
-  Mail,
-  MapPin,
-  Phone,
-  Sparkles,
-} from "lucide-react";
+"use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { ArrowUpRight, Github, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 
 const summaryHighlights = [
   "AI Engineer focused on agentic AI, RAG systems, and fine-tuning LLMs (PEFT, LoRA, QLoRA).",
@@ -64,7 +48,7 @@ const projects = [
     name: "Multi-Agent ETA Prediction & Image Intelligence",
     year: "2025",
     details: [
-      "Built a unified multi-agent stack for ETA prediction with real-time context and OCR/vision (Llama 3.2 vision).",
+      "Unified multi-agent stack for ETA prediction with real-time context and OCR/vision (Llama 3.2).",
       "Handles structured data extraction, intelligent captioning, and natural-language Q&A.",
     ],
   },
@@ -97,48 +81,15 @@ const projects = [
 const skills = [
   {
     title: "AI & ML",
-    items: [
-      "Transformers",
-      "RAG",
-      "PEFT",
-      "LoRA",
-      "QLoRA",
-      "Neural Networks",
-      "Claude",
-      "OpenCV",
-      "TensorFlow",
-      "scikit-learn",
-    ],
+    items: ["Transformers", "RAG", "PEFT", "LoRA", "QLoRA", "Neural Networks", "Claude", "OpenCV", "TensorFlow", "scikit-learn"],
   },
   {
     title: "Frameworks & Tools",
-    items: [
-      "LangChain",
-      "HuggingFace",
-      "Flask",
-      "FastAPI",
-      "OpenAI API",
-      "Cursor",
-      "Firebase",
-      "Airflow",
-    ],
+    items: ["LangChain", "HuggingFace", "Flask", "FastAPI", "OpenAI API", "Cursor", "Firebase", "Airflow"],
   },
   {
     title: "Automation & Infra",
-    items: [
-      "n8n",
-      "Agentic AI",
-      "Python scripting",
-      "Docker",
-      "Nginx",
-      "ActiveMQ",
-      "Elastic Stack",
-      "REST APIs",
-      "Git/GitLab",
-      "Linux",
-      "NumPy",
-      "Pandas",
-    ],
+    items: ["n8n", "Agentic AI", "Python scripting", "Docker", "Nginx", "ActiveMQ", "Elastic Stack", "REST APIs", "Git/GitLab", "Linux", "NumPy", "Pandas"],
   },
   {
     title: "Programming",
@@ -147,29 +98,12 @@ const skills = [
 ];
 
 const education = [
-  {
-    school: "Parul University, Vadodara — B.Tech CSE",
-    period: "2021 – 2025",
-    detail: "CGPA: 7.3",
-  },
-  {
-    school: "Sri Chaitanya Junior Kalasala, Hyderabad",
-    period: "2019 – 2021",
-    detail: "Intermediate (MPC), Percentage: 95.6",
-  },
-  {
-    school: "Sai Genius High School, Hyderabad",
-    period: "2018 – 2019",
-    detail: "SSC, CGPA: 9.7",
-  },
+  { school: "Parul University, Vadodara — B.Tech CSE", period: "2021 – 2025", detail: "CGPA: 7.3" },
+  { school: "Sri Chaitanya Junior Kalasala, Hyderabad", period: "2019 – 2021", detail: "Intermediate (MPC) · 95.6%" },
+  { school: "Sai Genius High School, Hyderabad", period: "2018 – 2019", detail: "SSC · CGPA 9.7" },
 ];
 
-const languages = [
-  "English (Professional)",
-  "Hindi (Fluent)",
-  "Telugu (Native)",
-  "Gujarati (Moderate)",
-];
+const languages = ["English (Professional)", "Hindi (Fluent)", "Telugu (Native)", "Gujarati (Moderate)"];
 
 const links = {
   github: "https://github.com/VIKRAMNETHA",
@@ -177,287 +111,282 @@ const links = {
 };
 
 export default function Home() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Particle field
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let W = (canvas.width = window.innerWidth);
+    let H = (canvas.height = window.innerHeight);
+
+    const pts = Array.from({ length: 90 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.1 + 0.2,
+      vx: (Math.random() - 0.5) * 0.18,
+      vy: (Math.random() - 0.5) * 0.18,
+      a: Math.random() * 0.35 + 0.04,
+    }));
+
+    let rafId: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      for (const p of pts) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(243,243,243,${p.a})`;
+        ctx.fill();
+      }
+      rafId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    const onResize = () => {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", onResize);
+    return () => { cancelAnimationFrame(rafId); window.removeEventListener("resize", onResize); };
+  }, []);
+
+  // Scroll reveal
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("visible"); io.unobserve(e.target); } }),
+      { threshold: 0.08 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen pb-14">
-      <main className="mx-auto flex max-w-6xl flex-col gap-12 px-6 pt-12 md:px-10">
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-10 shadow-2xl shadow-black/30 backdrop-blur">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -left-24 top-0 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl" />
-            <div className="absolute right-10 -bottom-20 h-72 w-72 rounded-full bg-indigo-500/15 blur-3xl" />
+    <>
+      <canvas ref={canvasRef} className="pcvs" aria-hidden="true" />
+
+      {/* ── HERO ────────────────────────────────────────── */}
+      <section className="hero">
+        <div className="hero-left">
+          <div className="pill h-pill">
+            <span className="pill-dot" />
+            Available for opportunities
           </div>
-          <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge variant="soft">Open to work</Badge>
-                <Badge variant="default">AI Engineer</Badge>
-                <Badge variant="outline">
-                  <MapPin size={14} />
-                  Ahmedabad, Gujarat, India
-                </Badge>
+
+          <div className="hero-name">
+            <span className="name-solid h-line1">VIKRAM</span>
+            <span className="name-outline h-line2">GUNTUKA</span>
+            <div className="name-rule" />
+          </div>
+
+          <p className="hero-sub h-sub">
+            AI Engineer crafting production-grade agentic AI, retrieval systems,
+            and automation for healthcare and enterprise.
+          </p>
+
+          <div className="cta-row h-cta">
+            <a href="mailto:vikramnetha27@gmail.com" className="btn-red">
+              <Mail size={14} /> Get in Touch
+            </a>
+            <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-ghost">
+              <Linkedin size={14} /> LinkedIn <ArrowUpRight size={11} />
+            </a>
+            <a href={links.github} target="_blank" rel="noreferrer" className="btn-ghost">
+              <Github size={14} /> GitHub <ArrowUpRight size={11} />
+            </a>
+          </div>
+
+          <div className="hero-meta h-meta">
+            <span><MapPin size={11} /> Ahmedabad, Gujarat, India</span>
+            <span><Phone size={11} /> +91 87121 63880</span>
+            <span>he / him</span>
+          </div>
+        </div>
+
+        <div className="portrait-col">
+          <Image
+            src="/hero.png"
+            alt="Vikram Guntuka — AI Engineer"
+            fill
+            className="portrait-img"
+            sizes="(max-width: 900px) 100vw, 44vw"
+            priority
+          />
+          <div className="portrait-fade" />
+          <div className="portrait-bottom" />
+          <div className="portrait-glow" />
+          <div className="scan-line" />
+          <span className="portrait-tag">AI · ENGINEER · 2025</span>
+        </div>
+      </section>
+
+      <hr className="rule" />
+
+      {/* ── ABOUT ───────────────────────────────────────── */}
+      <div className="page">
+        <section className="section reveal">
+          <SectionHeader title="About" />
+          <div className="about-grid">
+            {summaryHighlights.map((text) => (
+              <div key={text} className="about-cell">
+                <p className="about-text">{text}</p>
               </div>
-              <div className="space-y-3">
-                <p className="text-sm text-slate-400">He / Him</p>
-                <h1 className="text-4xl font-semibold leading-tight text-slate-50 md:text-5xl">
-                  Vikram Guntuka
-                </h1>
-                <p className="max-w-2xl text-lg text-slate-300">
-                  AI Engineer crafting production-grade agentic AI, retrieval
-                  systems, and automation for healthcare and enterprise use
-                  cases.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button asChild size="lg">
-                  <a href="mailto:vikramnetha27@gmail.com">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email
-                  </a>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <a href={links.linkedin} target="_blank" rel="noreferrer">
-                    <Linkedin className="mr-2 h-4 w-4" />
-                    LinkedIn
-                    <ArrowUpRight className="ml-1 h-4 w-4" />
-                  </a>
-                </Button>
-                <Button asChild variant="secondary" size="lg">
-                  <a href={links.github} target="_blank" rel="noreferrer">
-                    <Github className="mr-2 h-4 w-4" />
-                    GitHub
-                    <ArrowUpRight className="ml-1 h-4 w-4" />
-                  </a>
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-4 text-sm text-slate-300">
-                <div className="flex items-center gap-2">
-                  <Phone size={14} className="text-slate-400" />
-                  <span>+91 87121 63880</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe2 size={14} className="text-slate-400" />
-                  <span>Building with LangChain, n8n, and agentic AI</span>
-                </div>
-              </div>
-            </div>
-            <div className="relative h-44 w-44 shrink-0 self-start overflow-hidden rounded-full border border-white/15 bg-slate-900 shadow-2xl shadow-sky-500/25 md:self-auto">
-              <div className="absolute inset-[-12%] rounded-full bg-gradient-to-br from-sky-500/25 via-slate-900 to-indigo-500/25 blur-2xl" />
-              <Image
-                src="/profile.png"
-                alt="Vikram Guntuka portrait"
-                fill
-                className="object-cover"
-                sizes="176px"
-                priority
-              />
-            </div>
+            ))}
           </div>
         </section>
+      </div>
 
-        <section className="grid gap-6 md:grid-cols-3">
-          {summaryHighlights.map((item) => (
-            <Card key={item}>
-              <CardHeader className="flex items-start gap-3">
-                <div className="rounded-full bg-sky-500/10 p-2 text-sky-300">
-                  <Sparkles size={18} />
-                </div>
-                <CardTitle className="text-base font-semibold leading-6 text-slate-100">
-                  {item}
-                </CardTitle>
-              </CardHeader>
-            </Card>
+      <hr className="rule" />
+
+      {/* ── EXPERIENCE ──────────────────────────────────── */}
+      <div className="page">
+        <section className="section reveal">
+          <SectionHeader title="Experience" />
+          {experience.map((role) => (
+            <div key={`${role.company}-${role.period}`} className="exp-item">
+              <div>
+                <p className="exp-period">{role.period}</p>
+                <p className="exp-loc">{role.location}</p>
+              </div>
+              <div>
+                <p className="exp-co">{role.company}</p>
+                <h3 className="exp-role">{role.role}</h3>
+                <ul className="exp-bullets">
+                  {role.bullets.map((b) => <li key={b}>{b}</li>)}
+                </ul>
+              </div>
+            </div>
           ))}
         </section>
+      </div>
 
-        <section className="grid gap-6 md:grid-cols-2">
-          <Card className="md:col-span-2">
-            <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <CardTitle className="text-2xl">Experience</CardTitle>
-                <CardDescription>
-                  AI leadership across healthcare automation and intelligent
-                  systems.
-                </CardDescription>
+      <hr className="rule" />
+
+      {/* ── PROJECTS ────────────────────────────────────── */}
+      <div className="page">
+        <section className="section reveal">
+          <SectionHeader title="Projects" />
+          <div className="proj-grid">
+            {projects.map((p) => (
+              <div key={p.name} className="proj-card">
+                <p className="proj-yr">{p.year}</p>
+                <h3 className="proj-name">{p.name}</h3>
+                <ul className="proj-detail">
+                  {p.details.map((d) => <li key={d}>{d}</li>)}
+                </ul>
               </div>
-            </CardHeader>
-            <CardContent className="grid gap-5 md:grid-cols-2">
-              {experience.map((role) => (
-                <div
-                  key={`${role.company}-${role.period}`}
-                  className="rounded-2xl border border-white/5 bg-white/[0.01] p-5 shadow-inner shadow-black/30"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="text-sm text-sky-300">{role.company}</p>
-                      <h3 className="text-lg font-semibold text-slate-50">
-                        {role.role}
-                      </h3>
-                    </div>
-                    <Badge variant="soft">{role.period}</Badge>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-400">{role.location}</p>
-                  <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                    {role.bullets.map((bullet) => (
-                      <li key={bullet} className="leading-relaxed">
-                        • {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-2xl">Projects</CardTitle>
-              <CardDescription>
-                Production-grade builds across LLM fine-tuning, multi-agent
-                systems, and safety tooling.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              {projects.map((project) => (
-                <div
-                  key={project.name}
-                  className="rounded-2xl border border-white/5 bg-white/[0.01] p-4 shadow-inner shadow-black/30"
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-slate-100">
-                      {project.name}
-                    </h3>
-                    <Badge variant="soft">{project.year}</Badge>
-                  </div>
-                  <ul className="mt-3 space-y-2 text-sm text-slate-300">
-                    {project.details.map((detail) => (
-                      <li key={detail}>• {detail}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Skills</CardTitle>
-              <CardDescription>
-                A balanced stack across AI/ML, automation, and infra.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {skills.map((skill) => (
-                <div key={skill.title} className="rounded-xl bg-white/[0.03] p-3">
-                  <p className="text-sm font-semibold text-sky-200">
-                    {skill.title}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-300">
-                    {skill.items.join(" · ")}
-                  </p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Education</CardTitle>
-              <CardDescription>
-                Strong academic foundation with consistent performance.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {education.map((item) => (
-                <div
-                  key={item.school}
-                  className="rounded-xl bg-white/[0.03] p-3 leading-relaxed"
-                >
-                  <p className="text-sm font-semibold text-slate-100">
-                    {item.school}
-                  </p>
-                  <p className="text-sm text-slate-400">{item.period}</p>
-                  <p className="text-sm text-slate-300">{item.detail}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Languages & Profile</CardTitle>
-              <CardDescription>
-                Fluent communication and active professional presence.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-xl bg-white/[0.03] p-3 text-sm text-slate-300">
-                <p className="mb-2 text-sm font-semibold text-sky-200">
-                  Spoken Languages
-                </p>
-                <p>{languages.join(" · ")}</p>
-              </div>
-              <div className="rounded-xl bg-white/[0.03] p-3 text-sm text-slate-300 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Github size={16} className="text-slate-400" />
-                  <a
-                    href={links.github}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-sky-200"
-                  >
-                    {links.github}
-                  </a>
-                  <ArrowUpRight size={14} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Linkedin size={16} className="text-slate-400" />
-                  <a
-                    href={links.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-sky-200"
-                  >
-                    {links.linkedin}
-                  </a>
-                  <ArrowUpRight size={14} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail size={16} className="text-slate-400" />
-                  <span>vikramnetha27@gmail.com</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="rounded-3xl border border-white/10 bg-slate-900/60 px-6 py-8 shadow-xl shadow-black/30 md:flex md:items-center md:justify-between">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">
-              Availability
-            </p>
-            <h3 className="text-2xl font-semibold text-slate-50">
-              Open to AI Engineer, Generative AI, and Agentic AI roles.
-            </h3>
-            <p className="text-sm text-slate-300">
-              Ready to build reliable, production-grade AI systems with
-              measurable impact.
-            </p>
-          </div>
-          <div className="mt-4 flex gap-3 md:mt-0">
-            <Button asChild size="lg">
-              <a href="mailto:vikramnetha27@gmail.com">Schedule a call</a>
-            </Button>
-            <Button asChild variant="secondary" size="lg">
-              <a href={links.linkedin} target="_blank" rel="noreferrer">
-                View LinkedIn
-              </a>
-            </Button>
+            ))}
           </div>
         </section>
-      </main>
+      </div>
+
+      <hr className="rule" />
+
+      {/* ── SKILLS ──────────────────────────────────────── */}
+      <div className="page">
+        <section className="section reveal">
+          <SectionHeader title="Skills" />
+          <div className="skills-rows">
+            {skills.map((s) => (
+              <div key={s.title} className="skill-row">
+                <p className="skill-cat">{s.title}</p>
+                <div className="skill-tags">
+                  {s.items.map((item) => (
+                    <span key={item} className="skill-tag">{item}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <hr className="rule" />
+
+      {/* ── EDUCATION ───────────────────────────────────── */}
+      <div className="page">
+        <section className="section reveal">
+          <SectionHeader title="Education" />
+          <div className="edu-rows">
+            {education.map((e) => (
+              <div key={e.school} className="edu-row">
+                <p className="edu-period">{e.period}</p>
+                <div>
+                  <p className="edu-school">{e.school}</p>
+                  <p className="edu-detail">{e.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <hr className="rule" />
+
+      {/* ── LANGUAGES ───────────────────────────────────── */}
+      <div className="page">
+        <section className="section reveal" style={{ paddingBlock: "52px" }}>
+          <SectionHeader title="Languages" />
+          <div className="lang-tags skill-tags">
+            {languages.map((l) => (
+              <span key={l} className="skill-tag" style={{ color: "rgba(243,243,243,0.52)" }}>{l}</span>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <hr className="rule" />
+
+      {/* ── CTA ─────────────────────────────────────────── */}
+      <div className="page">
+        <section className="cta-section reveal">
+          <p className="cta-eye">The next chapter</p>
+          <h2 className="cta-head">
+            Open to AI Engineer,<br />
+            <em>Generative AI &amp;</em><br />
+            Agentic AI roles.
+          </h2>
+          <p className="cta-sub">
+            Ready to build reliable, production-grade AI systems with measurable impact.
+          </p>
+          <div className="cta-btns">
+            <a href="mailto:vikramnetha27@gmail.com" className="btn-red">Schedule a Call</a>
+            <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-ghost">
+              View LinkedIn <ArrowUpRight size={11} />
+            </a>
+          </div>
+        </section>
+      </div>
+
+      {/* ── FOOTER ──────────────────────────────────────── */}
+      <div className="page">
+        <footer className="footer">
+          <span>© 2025 Vikram Guntuka</span>
+          <div className="footer-links">
+            <span>vikramnetha27@gmail.com</span>
+            <span>+91 87121 63880</span>
+          </div>
+          <div className="footer-links">
+            <a href={links.github} target="_blank" rel="noreferrer">GitHub</a>
+            <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+          </div>
+        </footer>
+      </div>
+    </>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="sec-head">
+      <span className="sec-mark" aria-hidden="true" />
+      <h2 className="sec-title">{title}</h2>
     </div>
   );
 }
