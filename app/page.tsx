@@ -180,7 +180,7 @@ export default function Home() {
 
         <div className="hero-foot">
           <span><i className="status-dot" /> Available for opportunities</span>
-          <span>Ahmedabad, Gujarat, India</span>
+          <span>Hyderabad, India</span>
           <span>+91 87121 63880</span>
         </div>
       </header>
