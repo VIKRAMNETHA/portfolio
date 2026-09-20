@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { Archivo, Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
+const archivo = Archivo({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
+  weight: ["500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -36,7 +43,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${cormorant.variable} ${dmSans.variable} antialiased`}>
+      <body
+        className={`${archivo.variable} ${cormorant.variable} ${dmSans.variable} antialiased`}
+      >
         {children}
       </body>
     </html>

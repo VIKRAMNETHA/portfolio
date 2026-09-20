@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
-import { ArrowUpRight, Github, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 
 const summaryHighlights = [
   "AI Engineer focused on agentic AI, RAG systems, and fine-tuning LLMs (PEFT, LoRA, QLoRA).",
@@ -108,130 +107,88 @@ const languages = ["English (Professional)", "Hindi (Fluent)", "Telugu (Native)"
 const links = {
   github: "https://github.com/VIKRAMNETHA",
   linkedin: "https://linkedin.com/in/VIKRAMNETHA",
+  mail: "mailto:vikramnetha27@gmail.com",
 };
 
+const nav = [
+  { label: "About", href: "#about" },
+  { label: "Skills", href: "#skills" },
+  { label: "Work", href: "#work" },
+  { label: "Projects", href: "#projects" },
+  { label: "Education", href: "#education" },
+];
+
 export default function Home() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // Particle field
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let W = (canvas.width = window.innerWidth);
-    let H = (canvas.height = window.innerHeight);
-
-    const pts = Array.from({ length: 90 }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: Math.random() * 1.1 + 0.2,
-      vx: (Math.random() - 0.5) * 0.18,
-      vy: (Math.random() - 0.5) * 0.18,
-      a: Math.random() * 0.35 + 0.04,
-    }));
-
-    let rafId: number;
-    const draw = () => {
-      ctx.clearRect(0, 0, W, H);
-      for (const p of pts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(243,243,243,${p.a})`;
-        ctx.fill();
-      }
-      rafId = requestAnimationFrame(draw);
-    };
-    draw();
-
-    const onResize = () => {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", onResize);
-    return () => { cancelAnimationFrame(rafId); window.removeEventListener("resize", onResize); };
-  }, []);
-
-  // Scroll reveal
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>(".reveal");
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("visible"); io.unobserve(e.target); } }),
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("visible");
+            io.unobserve(e.target);
+          }
+        }),
       { threshold: 0.08 }
     );
-    els.forEach((el) => io.observe(el));
+    document.querySelectorAll<HTMLElement>(".reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
   return (
     <>
-      <canvas ref={canvasRef} className="pcvs" aria-hidden="true" />
-
       {/* ── HERO ────────────────────────────────────────── */}
-      <section className="hero">
-        <div className="hero-left">
-          <div className="pill h-pill">
-            <span className="pill-dot" />
-            Available for opportunities
-          </div>
-
-          <div className="hero-name">
-            <span className="name-solid h-line1">VIKRAM</span>
-            <span className="name-outline h-line2">GUNTUKA</span>
-            <div className="name-rule" />
-          </div>
-
-          <p className="hero-sub h-sub">
-            AI Engineer crafting production-grade agentic AI, retrieval systems,
-            and automation for healthcare and enterprise.
-          </p>
-
-          <div className="cta-row h-cta">
-            <a href="mailto:vikramnetha27@gmail.com" className="btn-red">
-              <Mail size={14} /> Get in Touch
-            </a>
-            <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-ghost">
-              <Linkedin size={14} /> LinkedIn <ArrowUpRight size={11} />
-            </a>
-            <a href={links.github} target="_blank" rel="noreferrer" className="btn-ghost">
-              <Github size={14} /> GitHub <ArrowUpRight size={11} />
-            </a>
-          </div>
-
-          <div className="hero-meta h-meta">
-            <span><MapPin size={11} /> Ahmedabad, Gujarat, India</span>
-            <span><Phone size={11} /> +91 87121 63880</span>
-            <span>he / him</span>
-          </div>
-        </div>
-
-        <div className="portrait-col">
+      <header className="hero">
+        <div className="hero-bg">
           <Image
             src="/hero.png"
-            alt="Vikram Guntuka — AI Engineer"
+            alt="Vikram Guntuka"
             fill
-            className="portrait-img"
-            sizes="(max-width: 900px) 100vw, 44vw"
+            className="hero-img"
+            sizes="100vw"
             priority
           />
-          <div className="portrait-fade" />
-          <div className="portrait-bottom" />
-          <div className="portrait-glow" />
-          <div className="scan-line" />
-          <span className="portrait-tag">AI · ENGINEER · 2025</span>
         </div>
-      </section>
+        <div className="hero-veil" />
 
-      <hr className="rule" />
+        <div className="hero-top">
+          <span className="hero-mark">AI Engineer</span>
+          <nav className="top-links">
+            <a href={links.mail}>Mail</a>
+            <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href={links.github} target="_blank" rel="noreferrer">GitHub</a>
+          </nav>
+        </div>
+
+        <div className="hero-body">
+          <div>
+            <h1 className="hero-name">
+              <span><i>Vikram</i></span>
+              <span><i>Guntuka</i></span>
+            </h1>
+            <p className="hero-sub">
+              Building production-grade agentic AI, retrieval systems, and
+              automation for healthcare and enterprise.
+            </p>
+          </div>
+
+          <nav className="side-nav">
+            {nav.map((n) => (
+              <a key={n.href} href={n.href}>{n.label}</a>
+            ))}
+          </nav>
+        </div>
+
+        <div className="hero-foot">
+          <span><i className="status-dot" /> Available for opportunities</span>
+          <span>Ahmedabad, Gujarat, India</span>
+          <span>+91 87121 63880</span>
+        </div>
+      </header>
 
       {/* ── ABOUT ───────────────────────────────────────── */}
       <div className="page">
-        <section className="section reveal">
-          <SectionHeader title="About" />
+        <section id="about" className="section reveal">
+          <SectionHeader num="01" title="About" />
           <div className="about-grid">
             {summaryHighlights.map((text) => (
               <div key={text} className="about-cell">
@@ -244,10 +201,39 @@ export default function Home() {
 
       <hr className="rule" />
 
-      {/* ── EXPERIENCE ──────────────────────────────────── */}
+      {/* ── SKILLS ──────────────────────────────────────── */}
       <div className="page">
-        <section className="section reveal">
-          <SectionHeader title="Experience" />
+        <section id="skills" className="section reveal">
+          <SectionHeader num="02" title="Skills" />
+          <div className="skills-rows">
+            {skills.map((s) => (
+              <div key={s.title} className="skill-row">
+                <p className="skill-cat">{s.title}</p>
+                <div className="skill-tags">
+                  {s.items.map((item) => (
+                    <span key={item} className="skill-tag">{item}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="skill-row">
+              <p className="skill-cat">Languages</p>
+              <div className="skill-tags">
+                {languages.map((l) => (
+                  <span key={l} className="skill-tag">{l}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <hr className="rule" />
+
+      {/* ── WORK ────────────────────────────────────────── */}
+      <div className="page">
+        <section id="work" className="section reveal">
+          <SectionHeader num="03" title="Work" />
           {experience.map((role) => (
             <div key={`${role.company}-${role.period}`} className="exp-item">
               <div>
@@ -270,8 +256,8 @@ export default function Home() {
 
       {/* ── PROJECTS ────────────────────────────────────── */}
       <div className="page">
-        <section className="section reveal">
-          <SectionHeader title="Projects" />
+        <section id="projects" className="section reveal">
+          <SectionHeader num="04" title="Projects" />
           <div className="proj-grid">
             {projects.map((p) => (
               <div key={p.name} className="proj-card">
@@ -288,31 +274,10 @@ export default function Home() {
 
       <hr className="rule" />
 
-      {/* ── SKILLS ──────────────────────────────────────── */}
-      <div className="page">
-        <section className="section reveal">
-          <SectionHeader title="Skills" />
-          <div className="skills-rows">
-            {skills.map((s) => (
-              <div key={s.title} className="skill-row">
-                <p className="skill-cat">{s.title}</p>
-                <div className="skill-tags">
-                  {s.items.map((item) => (
-                    <span key={item} className="skill-tag">{item}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <hr className="rule" />
-
       {/* ── EDUCATION ───────────────────────────────────── */}
       <div className="page">
-        <section className="section reveal">
-          <SectionHeader title="Education" />
+        <section id="education" className="section reveal">
+          <SectionHeader num="05" title="Education" />
           <div className="edu-rows">
             {education.map((e) => (
               <div key={e.school} className="edu-row">
@@ -322,20 +287,6 @@ export default function Home() {
                   <p className="edu-detail">{e.detail}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <hr className="rule" />
-
-      {/* ── LANGUAGES ───────────────────────────────────── */}
-      <div className="page">
-        <section className="section reveal" style={{ paddingBlock: "52px" }}>
-          <SectionHeader title="Languages" />
-          <div className="lang-tags skill-tags">
-            {languages.map((l) => (
-              <span key={l} className="skill-tag" style={{ color: "rgba(243,243,243,0.52)" }}>{l}</span>
             ))}
           </div>
         </section>
@@ -356,9 +307,9 @@ export default function Home() {
             Ready to build reliable, production-grade AI systems with measurable impact.
           </p>
           <div className="cta-btns">
-            <a href="mailto:vikramnetha27@gmail.com" className="btn-red">Schedule a Call</a>
-            <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-ghost">
-              View LinkedIn <ArrowUpRight size={11} />
+            <a href={links.mail} className="btn-solid">Schedule a Call</a>
+            <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-line">
+              View LinkedIn
             </a>
           </div>
         </section>
@@ -382,10 +333,10 @@ export default function Home() {
   );
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ num, title }: { num: string; title: string }) {
   return (
     <div className="sec-head">
-      <span className="sec-mark" aria-hidden="true" />
+      <span className="sec-num">{num}</span>
       <h2 className="sec-title">{title}</h2>
     </div>
   );
