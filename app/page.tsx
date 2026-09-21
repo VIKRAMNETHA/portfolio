@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import emailjs from "@emailjs/browser";
 
 const summaryHighlights = [
   "AI Engineer focused on agentic AI, RAG systems, and fine-tuning LLMs (PEFT, LoRA, QLoRA).",
@@ -116,7 +117,14 @@ const nav = [
   { label: "Work", href: "#work" },
   { label: "Projects", href: "#projects" },
   { label: "Education", href: "#education" },
+  { label: "Contact", href: "#contact" },
 ];
+
+const EMAILJS = {
+  serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+  templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+  publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
+};
 
 export default function Home() {
   useEffect(() => {
@@ -294,23 +302,28 @@ export default function Home() {
 
       <hr className="rule" />
 
-      {/* ── CTA ─────────────────────────────────────────── */}
+      {/* ── CONTACT ─────────────────────────────────────── */}
       <div className="page">
-        <section className="cta-section reveal">
-          <p className="cta-eye">The next chapter</p>
-          <h2 className="cta-head">
-            Open to AI Engineer,<br />
-            <em>Generative AI &amp;</em><br />
-            Agentic AI roles.
-          </h2>
-          <p className="cta-sub">
-            Ready to build reliable, production-grade AI systems with measurable impact.
-          </p>
-          <div className="cta-btns">
-            <a href={links.mail} className="btn-solid">Schedule a Call</a>
-            <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-line">
-              View LinkedIn
-            </a>
+        <section id="contact" className="cta-section reveal">
+          <div className="cta-grid">
+            <div>
+              <p className="cta-eye">The next chapter</p>
+              <h2 className="cta-head">
+                Open to AI Engineer,<br />
+                <em>Generative AI &amp;</em><br />
+                Agentic AI roles.
+              </h2>
+              <p className="cta-sub">
+                Ready to build reliable, production-grade AI systems with measurable impact.
+              </p>
+              <div className="cta-btns">
+                <a href={links.mail} className="btn-line">vikramnetha27@gmail.com</a>
+                <a href={links.linkedin} target="_blank" rel="noreferrer" className="btn-line">
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+            <ContactForm />
           </div>
         </section>
       </div>
@@ -330,6 +343,64 @@ export default function Home() {
         </footer>
       </div>
     </>
+  );
+}
+
+function ContactForm() {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!formRef.current || status === "sending") return;
+    setStatus("sending");
+    try {
+      await emailjs.sendForm(
+        EMAILJS.serviceId!,
+        EMAILJS.templateId!,
+        formRef.current,
+        { publicKey: EMAILJS.publicKey! }
+      );
+      formRef.current.reset();
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <form ref={formRef} className="contact-form" onSubmit={handleSubmit}>
+      <p className="form-eye">Send a message</p>
+
+      <label className="field">
+        <span>Name</span>
+        <input type="text" name="from_name" required autoComplete="name" />
+      </label>
+
+      <label className="field">
+        <span>Email</span>
+        <input type="email" name="reply_to" required autoComplete="email" />
+      </label>
+
+      <label className="field">
+        <span>Message</span>
+        <textarea name="message" rows={5} required />
+      </label>
+
+      <button type="submit" className="btn-solid" disabled={status === "sending"}>
+        {status === "sending" ? "Sending…" : "Send Message"}
+      </button>
+
+      {status === "sent" && (
+        <p className="form-note">Thanks — your message is on its way.</p>
+      )}
+      {status === "error" && (
+        <p className="form-note form-note-err">
+          Couldn&apos;t send. Email me directly at{" "}
+          <a href={links.mail}>vikramnetha27@gmail.com</a>.
+        </p>
+      )}
+    </form>
   );
 }
 
