@@ -127,6 +127,12 @@ const EMAILJS = {
 };
 
 export default function Home() {
+  const bgRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  usePixelHero({ bgRef, imgRef, canvasRef });
+
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) =>
@@ -146,8 +152,9 @@ export default function Home() {
     <>
       {/* ── HERO ────────────────────────────────────────── */}
       <header className="hero">
-        <div className="hero-bg">
+        <div className="hero-bg" ref={bgRef}>
           <Image
+            ref={imgRef}
             src="/hero.png"
             alt="Vikram Guntuka"
             fill
@@ -155,6 +162,7 @@ export default function Home() {
             sizes="100vw"
             priority
           />
+          <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
         </div>
         <div className="hero-veil" />
 
@@ -344,6 +352,179 @@ export default function Home() {
       </div>
     </>
   );
+}
+
+/* Pixelated hero: resolves from blocks on load, then a drifting pixel wave
+   plus a pixel spotlight that follows the pointer. Mirrors the CSS
+   `object-fit: cover` / `object-position: 50% 14%` framing of .hero-img. */
+function usePixelHero({
+  bgRef,
+  imgRef,
+  canvasRef,
+}: {
+  bgRef: React.RefObject<HTMLDivElement | null>;
+  imgRef: React.RefObject<HTMLImageElement | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+}) {
+  useEffect(() => {
+    const wrap = bgRef.current;
+    const img = imgRef.current;
+    const canvas = canvasRef.current;
+    if (!wrap || !img || !canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lo = document.createElement("canvas");
+    const loCtx = lo.getContext("2d")!;
+    const tmp = document.createElement("canvas");
+    const tmpCtx = tmp.getContext("2d")!;
+
+    let W = 0;
+    let H = 0;
+    let raf = 0;
+    let start = 0;
+    let visible = true;
+    const pointer = { x: 0, y: 0, active: false };
+
+    function resize() {
+      const r = wrap!.getBoundingClientRect();
+      W = Math.max(1, Math.round(r.width));
+      H = Math.max(1, Math.round(r.height));
+      canvas!.width = W;
+      canvas!.height = H;
+      tmp.width = W;
+      tmp.height = H;
+    }
+
+    // Replicate object-fit: cover with object-position 50% 14%.
+    function cover() {
+      const scale = Math.max(W / img!.naturalWidth, H / img!.naturalHeight);
+      const dw = img!.naturalWidth * scale;
+      const dh = img!.naturalHeight * scale;
+      return { dx: (W - dw) * 0.5, dy: (H - dh) * 0.14, dw, dh };
+    }
+
+    function paint(target: CanvasRenderingContext2D, block: number) {
+      const { dx, dy, dw, dh } = cover();
+      if (block <= 1.05) {
+        target.imageSmoothingEnabled = true;
+        target.drawImage(img!, dx, dy, dw, dh);
+        return;
+      }
+      const lw = Math.max(1, Math.ceil(W / block));
+      const lh = Math.max(1, Math.ceil(H / block));
+      lo.width = lw;
+      lo.height = lh;
+      loCtx.clearRect(0, 0, lw, lh);
+      loCtx.drawImage(img!, dx / block, dy / block, dw / block, dh / block);
+      target.imageSmoothingEnabled = false;
+      target.drawImage(lo, 0, 0, lw, lh, 0, 0, W, H);
+      target.imageSmoothingEnabled = true;
+    }
+
+    // Paint a pixelated pass and keep only what the mask gradient covers.
+    function region(block: number, mask: (c: CanvasRenderingContext2D) => void) {
+      tmpCtx.clearRect(0, 0, W, H);
+      paint(tmpCtx, block);
+      tmpCtx.globalCompositeOperation = "destination-in";
+      mask(tmpCtx);
+      tmpCtx.globalCompositeOperation = "source-over";
+      ctx!.drawImage(tmp, 0, 0);
+    }
+
+    function frame(now: number) {
+      raf = requestAnimationFrame(frame);
+      if (!visible) return;
+      if (!start) start = now;
+      const t = (now - start) / 1000;
+
+      const intro = Math.min(1, t / 2);
+      const eased = 1 - Math.pow(1 - intro, 3);
+      ctx!.clearRect(0, 0, W, H);
+      paint(ctx!, Math.max(1, 44 * (1 - eased)));
+      if (intro < 1) return;
+
+      // Pixel wave sweeping down every 7s.
+      const cycle = (t - 2) % 7;
+      if (cycle < 2.4) {
+        const y = (cycle / 2.4) * (H + 360) - 180;
+        region(9, (c) => {
+          const g = c.createLinearGradient(0, y - 180, 0, y + 180);
+          g.addColorStop(0, "rgba(0,0,0,0)");
+          g.addColorStop(0.5, "rgba(0,0,0,0.85)");
+          g.addColorStop(1, "rgba(0,0,0,0)");
+          c.fillStyle = g;
+          c.fillRect(0, y - 180, W, 360);
+        });
+      }
+
+      // Pixel spotlight under the pointer.
+      if (pointer.active) {
+        const r = 190;
+        region(14, (c) => {
+          const g = c.createRadialGradient(
+            pointer.x, pointer.y, 0,
+            pointer.x, pointer.y, r
+          );
+          g.addColorStop(0, "rgba(0,0,0,0.95)");
+          g.addColorStop(0.6, "rgba(0,0,0,0.5)");
+          g.addColorStop(1, "rgba(0,0,0,0)");
+          c.fillStyle = g;
+          c.fillRect(pointer.x - r, pointer.y - r, r * 2, r * 2);
+        });
+      }
+    }
+
+    function begin() {
+      resize();
+      wrap!.dataset.canvas = "on";
+      if (reduce) {
+        paint(ctx!, 1);
+        return;
+      }
+      raf = requestAnimationFrame(frame);
+    }
+
+    const onResize = () => {
+      resize();
+      if (reduce) paint(ctx!, 1);
+    };
+    const onMove = (e: PointerEvent) => {
+      const r = wrap!.getBoundingClientRect();
+      pointer.x = e.clientX - r.left;
+      pointer.y = e.clientY - r.top;
+      pointer.active = true;
+    };
+    const onLeave = () => {
+      pointer.active = false;
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    io.observe(wrap);
+
+    if (img.complete && img.naturalWidth > 0) begin();
+    else img.addEventListener("load", begin, { once: true });
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerleave", onLeave);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      img.removeEventListener("load", begin);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+    };
+  }, [bgRef, imgRef, canvasRef]);
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

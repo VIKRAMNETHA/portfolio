@@ -60,6 +60,16 @@ a { color: inherit; text-decoration: none; }
   mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, #000 36%);
 }
 
+.hero-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  filter: grayscale(1) contrast(1.08) brightness(0.92);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.hero-bg[data-canvas="on"] .hero-canvas { opacity: 1; }
+.hero-bg[data-canvas="on"] .hero-img { opacity: 0; }
+
 .hero-img {
   object-fit: cover !important;
   object-position: 50% 14% !important;
