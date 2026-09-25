@@ -460,11 +460,21 @@ a { color: inherit; text-decoration: none; }
 }
 .contact-form .btn-solid:disabled { opacity: 0.5; cursor: default; transform: none; }
 
+.field > em {
+  font-style: normal; font-size: 11px; letter-spacing: 0.06em;
+  color: #ff8080;
+}
+.field-err input,
+.field-err textarea { border-bottom-color: #ff8080; }
+
 .form-note {
   font-family: var(--font-serif), Georgia, serif;
   font-size: 16px; color: var(--fog);
 }
 .form-note-err a { border-bottom: 1px solid var(--dust); }
+
+.form-sent { align-items: flex-start; gap: 14px; }
+.form-sent .btn-line { margin-top: 10px; cursor: pointer; background: none; font-family: inherit; }
 
 .btn-solid {
   display: inline-flex; align-items: center; gap: 9px;

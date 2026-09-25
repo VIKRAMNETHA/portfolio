@@ -346,54 +346,125 @@ export default function Home() {
   );
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type Fields = { name: string; email: string; message: string };
+
+function validate({ name, email, message }: Fields) {
+  const errors: Partial<Fields> = {};
+  if (!name.trim()) errors.name = "Name is required";
+  if (!email.trim()) errors.email = "Email is required";
+  else if (!EMAIL_REGEX.test(email)) errors.email = "Enter a valid email";
+  if (!message.trim()) errors.message = "Message is required";
+  else if (message.trim().length < 10) errors.message = "At least 10 characters";
+  return errors;
+}
+
 function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errors, setErrors] = useState<Partial<Fields>>({});
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+
+  function read(): Fields {
+    const data = new FormData(formRef.current!);
+    return {
+      name: (data.get("name") as string) || "",
+      email: (data.get("email") as string) || "",
+      message: (data.get("message") as string) || "",
+    };
+  }
+
+  function revalidate(field: string) {
+    setTouched((prev) => new Set(prev).add(field));
+    setErrors(validate(read()));
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!formRef.current || status === "sending") return;
+    if (status === "sending") return;
+
+    const fields = read();
+    const found = validate(fields);
+    setErrors(found);
+    setTouched(new Set(["name", "email", "message"]));
+    if (Object.keys(found).length > 0) return;
+
     setStatus("sending");
     try {
-      await emailjs.sendForm(
+      await emailjs.send(
         EMAILJS.serviceId!,
         EMAILJS.templateId!,
-        formRef.current,
+        { ...fields, timestamp: new Date().toLocaleString() },
         { publicKey: EMAILJS.publicKey! }
       );
-      formRef.current.reset();
+      formRef.current!.reset();
+      setErrors({});
+      setTouched(new Set());
       setStatus("sent");
     } catch {
       setStatus("error");
     }
   }
 
+  if (status === "sent") {
+    return (
+      <div className="contact-form form-sent">
+        <p className="form-eye">Message sent</p>
+        <p className="form-note">I&apos;ll get back to you soon.</p>
+        <button type="button" className="btn-line" onClick={() => setStatus("idle")}>
+          Send another
+        </button>
+      </div>
+    );
+  }
+
+  const show = (f: keyof Fields) => touched.has(f) && errors[f];
+
   return (
-    <form ref={formRef} className="contact-form" onSubmit={handleSubmit}>
+    <form ref={formRef} className="contact-form" onSubmit={handleSubmit} noValidate>
       <p className="form-eye">Send a message</p>
 
-      <label className="field">
+      <label className={`field${show("name") ? " field-err" : ""}`}>
         <span>Name</span>
-        <input type="text" name="from_name" required autoComplete="name" />
+        <input
+          type="text"
+          name="name"
+          autoComplete="name"
+          onBlur={() => revalidate("name")}
+          onChange={() => touched.has("name") && revalidate("name")}
+        />
+        {show("name") && <em>{errors.name}</em>}
       </label>
 
-      <label className="field">
+      <label className={`field${show("email") ? " field-err" : ""}`}>
         <span>Email</span>
-        <input type="email" name="reply_to" required autoComplete="email" />
+        <input
+          type="email"
+          name="email"
+          autoComplete="email"
+          onBlur={() => revalidate("email")}
+          onChange={() => touched.has("email") && revalidate("email")}
+        />
+        {show("email") && <em>{errors.email}</em>}
       </label>
 
-      <label className="field">
+      <label className={`field${show("message") ? " field-err" : ""}`}>
         <span>Message</span>
-        <textarea name="message" rows={5} required />
+        <textarea
+          name="message"
+          rows={5}
+          maxLength={2000}
+          onBlur={() => revalidate("message")}
+          onChange={() => touched.has("message") && revalidate("message")}
+        />
+        {show("message") && <em>{errors.message}</em>}
       </label>
 
       <button type="submit" className="btn-solid" disabled={status === "sending"}>
         {status === "sending" ? "Sending…" : "Send Message"}
       </button>
 
-      {status === "sent" && (
-        <p className="form-note">Thanks — your message is on its way.</p>
-      )}
       {status === "error" && (
         <p className="form-note form-note-err">
           Couldn&apos;t send. Email me directly at{" "}
